@@ -1,0 +1,279 @@
+#==============================================================================
+# PROJECT CONFIGURATION
+#==============================================================================
+[project]
+requires-python = ">=3.12,<3.13"
+name = "cookie_project_slug"
+version = "0.1.0"
+description = "cookie_project_description"
+authors = [
+    { name = "cookie_full_name", email = "cookie_email@example.com" },
+]
+dependencies = [
+    "advanced-alchemy>=1.4.4",
+    "atlas-provider-sqlalchemy>=0.3.1", # migrations
+    "sqlalchemy>=2.0.41", # orm
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "pre-commit>=4.2.0",
+    "pydbml>=1.2.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.26.0,<1.0.0",
+    "pytest-timeout>=2.4.0",
+]
+
+#==============================================================================
+# CODE FORMATTING
+#==============================================================================
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.toml
+  |\.sh
+  |\.git
+  |\.ini
+  |Dockerfile
+  |Jenkinfile
+)/
+'''
+
+#==============================================================================
+# TESTING
+#==============================================================================
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--import-mode=importlib --timeout=3"
+python_files = [
+  "tests.py",
+  "test_*.py",
+]
+pythonpath = "."
+filterwarnings = [
+  "error",
+  "ignore::pydantic.PydanticDeprecatedSince20",
+]
+
+#------------------------------------------------------------------------------
+# Coverage Configuration
+#------------------------------------------------------------------------------
+[tool.coverage.run]
+plugins = ["covdefaults"]
+omit = [
+  "*/__init__.py",
+  "src/main/settings/*"
+]
+[tool.coverage.report]
+fail_under = 5
+
+
+#==============================================================================
+# TYPE CHECKING
+#==============================================================================
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+ignore_missing_imports = true
+ignore_errors = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+namespace_packages = true
+explicit_package_bases = true
+
+#==============================================================================
+# LINTING
+#==============================================================================
+[tool.ruff]
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  "*/migrations/*.py",
+  "staticfiles/*",
+  "scripts/*"
+]
+fix = true
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+#------------------------------------------------------------------------------
+# Ruff Linting Configuration
+#------------------------------------------------------------------------------
+[tool.ruff.lint]
+select = [
+  "F",
+  "E",
+  "W",
+  "C90",
+  "I",
+  "N",
+  "UP",
+  "YTT",
+  # "ANN", # flake8-annotations: we should support this in the future but 100+ errors atm
+  "ASYNC",
+  "D",
+  "S",
+  "BLE",
+  "FBT",
+  "B",
+  "A",
+  "COM",
+  "C4",
+  "DTZ",
+  "T10",
+  "DJ",
+  "EM",
+  "EXE",
+  "FA",
+  'ISC',
+  "ICN",
+  "G",
+  'INP',
+  'PIE',
+  "T20",
+  'PYI',
+  'PT',
+  "Q",
+  "RSE",
+  "RET",
+  "SLF",
+  "SLOT",
+  "SIM",
+  "TID",
+  "TCH",
+  "INT",
+  # "ARG", # Unused function argument
+  "PTH",
+  "ERA",
+  "PD",
+  "PGH",
+  "PL",
+  "TRY",
+  "FLY",
+  # "NPY",
+  # "AIR",
+  "PERF",
+  # "FURB",
+  # "LOG",
+  "RUF",
+]
+ignore = [
+  "RUF012", # ruff - mutable class attributes should be annotated with `typing.ClassVar`
+  "PLR0913", # too many arguments
+  "N805", # pydantic has decorators with cls argument
+  "N818", # forcec 'error' suffix instead of 'exception'
+  "FBT001", # booleans as positional arguments are ok.
+  "FBT002", # booleans as positional arguments are ok.
+  "DJ007", # allow fields = "__all__"
+  "BLE001", # allow bare excepts
+  "RUF022", # allow unsorted __all__
+  "ERA001", # allow commented code
+  "DJ001", # null for char fields in choices
+  "FBT003", # boolean as a positional argument
+  "E501", # line too long
+  "S104", # devs know better what to do with ports
+  "N802", # uppercase is for us to decide
+]
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+# The fixes in extend-unsafe-fixes will require
+# provide the `--unsafe-fixes` flag when fixing.
+extend-unsafe-fixes = [
+  "UP038"
+]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+#------------------------------------------------------------------------------
+# Documentation Style
+#------------------------------------------------------------------------------
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+#------------------------------------------------------------------------------
+# Code Complexity
+#------------------------------------------------------------------------------
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+#------------------------------------------------------------------------------
+# Naming Conventions
+#------------------------------------------------------------------------------
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+  "classmethod",
+]
+
+#------------------------------------------------------------------------------
+# File-specific Ignores
+#------------------------------------------------------------------------------
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*.py" = ['D104', 'D103', 'D205', 'D212']
+"__init__.py" = ['F401', 'D104']
+"docs/**/*.*" = ["S", "B", "DTZ", "A", "TCH", "ERA", "D", "RET", "E731", "RUF012", "FA100", "ARG001"]
+"docs/conf.py" = ["FIX002", "ARG001", "INP001"]
+"scripts/**/*.*" = ["D", "ARG", "EM", "TRY", "G", "FBT", "INP001"]
+"scripts/*.py" = ["INP001", "ERA001"]
+"src/app/db/migrations/versions/*.py" = ["ANN201", "INP001"]
+"tests/*.py" = ['D103', 'PTH110', 'T201', 'S101', 'D104', 'SLF001', 'PLR2004', 'PTH123', 'S105']
+"src/main/settings/*.py" = ["N802", "EM101", "TRY003", "PLW0127"]
+"manage.py" = ["N802", "EM101", "TRY003"]
+"src/common/constraints.py" = ["RUF001", "S105"]
+
+#==============================================================================
+# ADDITIONAL TOOLS
+#==============================================================================
+#------------------------------------------------------------------------------
+# Slots Checking
+#------------------------------------------------------------------------------
+[tool.slotscheck]
+strict-imports = false
+
+#------------------------------------------------------------------------------
+# Spell Checking
+#------------------------------------------------------------------------------
+[tool.codespell]
+ignore-words-list = "alog"
+skip = 'pdm.lock, package-lock.json'
+
+#------------------------------------------------------------------------------
+# Code Formatting
+#------------------------------------------------------------------------------
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+#------------------------------------------------------------------------------
+# Import Sorting
+#------------------------------------------------------------------------------
+[tool.ruff.lint.isort]
+force-single-line = true
+known-first-party = ['tests', 'src']

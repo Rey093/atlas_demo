@@ -1,0 +1,162 @@
+version: '3'
+
+env:
+  PYTHONPATH: '.'
+  PROJECT_NAME: 'cookie_project_slug'
+  DEFAULT_DB_URL: "postgres://postgres_admin:postgres_password@localhost:5433/api?search_path=public"
+  DEFAULT_DB_URL_NOSSL: "postgres://postgres_admin:postgres_password@localhost:5433/api?search_path=public&sslmode=disable"
+
+tasks:
+  run:
+    desc: Run the FastAPI app
+    deps: [venv]
+    cmds:
+      - uv run uvicorn src.cookie_project_slug.main.app:create_fastapi_app --reload --host 127.0.0.1 --port 8080
+
+  up:
+    desc: Build and deploy the app using Docker Compose
+    deps: [generate_dot_env]
+    cmds:
+      - docker compose -p {{.PROJECT_NAME}} up --build
+
+  up-d:
+    desc: Build and deploy the app using Docker Compose in detached mode
+    deps: [ generate_dot_env ]
+    cmds:
+      - docker compose -p {{.PROJECT_NAME}} up --build -d
+
+  down:
+    desc: Bring down the Docker Compose environment
+    cmds:
+      - docker compose -p {{.PROJECT_NAME}} down
+
+  down-v:
+    desc: Bring down the Docker Compose environment and remove volumes
+    cmds:
+      - docker compose -p {{.PROJECT_NAME}} down -v
+
+  test:
+    desc: Run tests with pytest
+    cmds:
+      - uv run pytest tests -vv --show-capture=all
+
+  specs-openapi:
+    desc: Generate openapi specs
+    cmds:
+      - uv run python scripts/generate_specs.py
+
+  specs-db:
+    desc: Generate database diagram from DBML file
+    cmds:
+      - db2dbml postgres "{{.DEFAULT_DB_URL}}" -o specs/database.dbml
+
+  setup:
+    desc: Run all setup tasks
+    cmds:
+      - task: clean
+      - task: init
+      - task: setup_env
+      - task: venv
+      - task: install
+      - task: generate_dot_env
+      - task: hooks
+
+  clean:
+    desc: Clean up project files
+    cmds:
+      - find . -name '*.pyc' -exec rm -rf {} +
+      - find . -name '__pycache__' -exec rm -rf {} +
+      - find . -name 'Thumbs.db' -exec rm -rf {} +
+      - find . -name '*~' -exec rm -rf {} +
+      - rm -rf .cache build dist *.egg-info htmlcov .tox/ docs/_build
+
+  venv:
+    desc: Create virtual environment using uv if it does not exists
+    status:
+      - test -d .venv
+    cmds:
+      - pip install uv --break-system-packages
+      - uv venv .venv
+
+  init:
+    desc: |
+      Initialize project by replacing template variables interactively
+
+      This will prompt you for:
+        - Project slug (used for package name)
+        - Initial project version
+        - Short project description
+        - Your full name
+        - Your email address
+    cmds:
+      - python -m scripts.init
+
+  install:
+    desc: Install dependencies using uv
+    deps: [generate_dot_env, venv]
+    cmds:
+      - uv sync --locked --all-extras --dev
+
+  upgrade:
+    desc: Update dependencies using uv
+    deps: [generate_dot_env, venv]
+    cmds:
+      - uv lock --upgrade
+
+  generate_dot_env:
+    desc: Generate .env from example if not exists
+    status:
+      - test -f config/.env
+    cmds:
+      - cp config/.env.example config/.env
+
+  hooks:
+    desc: Install git hooks
+    deps: [ venv ]
+    cmds:
+      - pre-commit install
+      - bash scripts/gitmessage_hook.sh
+
+  lint:
+    desc: Run pre-commit checks on all files
+    deps: [ venv ]
+    cmds:
+      - pre-commit run --all-files
+
+  setup_env:
+    desc: Setup environment variables for Nexus repository
+    cmds:
+      - python scripts/setup_env.py
+
+  # Atlas database migration commands
+  migrations:
+    desc: Generate a new migration using Atlas
+    cmds:
+      - atlas migrate diff --env sqlalchemy
+
+  migrate:
+    desc: Apply the schema to the database using Atlas
+    cmds:
+      - atlas schema apply --env sqlalchemy --url "{{.DEFAULT_DB_URL_NOSSL}}"
+
+  atlas_hash:
+    desc: Hash migrations using Atlas
+    cmds:
+      - atlas migrate hash
+
+  atlas_rm:
+    desc: Remove a specific migration using Atlas
+    vars:
+      VERSION: '{{.CLI_ARGS}}'
+    cmds:
+      - atlas migrate rm {{.VERSION}}
+
+  atlas_lint:
+    desc: Lint migrations using Atlas
+    cmds:
+      - atlas migrate lint --env sqlalchemy --latest 1
+
+  atlas_show_schema:
+    desc: Show current database schema using Atlas
+    cmds:
+      - atlas schema inspect --env sqlalchemy --url "{{.DEFAULT_DB_URL_NOSSL}}"
