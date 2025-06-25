@@ -28,6 +28,7 @@ order_table = Table(
     Column("_name", String, nullable=False),
     # Order address
     Column("_address", String, nullable=False),
+    Column("_address2", String, nullable=False),
     # Date/time of instance creation.
     Column(
         "created_at",
