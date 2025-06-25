@@ -32,7 +32,7 @@ jobs:
 #          config: 'file://atlas.hcl'
 #          env: 'sqlalchemy'
       - uses: ariga/atlas-action/migrate/push@v1
-        if: github.ref == 'refs/heads/main'
+#        if: github.ref == 'refs/heads/main'
         with:
           dir: 'file://migrations'
           dir-name: 'my-project'
