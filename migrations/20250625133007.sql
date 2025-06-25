@@ -2,7 +2,6 @@
 CREATE TABLE "orders" (
   "id" uuid NOT NULL,
   "_name" character varying NOT NULL,
-  "_name2" character varying NOT NULL,
   "_address" character varying NOT NULL,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL,

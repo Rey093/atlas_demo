@@ -26,8 +26,6 @@ order_table = Table(
     Column("id", UUID, default=uuid4, primary_key=True, autoincrement=False),
     # Order name
     Column("_name", String, nullable=False),
-    Column("_name2", String, nullable=False),
-    Column("_name3", String, nullable=False),
     # Order address
     Column("_address", String, nullable=False),
     # Date/time of instance creation.
